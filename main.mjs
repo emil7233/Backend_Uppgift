@@ -13,10 +13,10 @@ app.get("/products", async (req, res) => { //Hämta alla produkter
 });
 
 app.get("/products/:id", async (req, res) => {
-    const productId = Number.parseInt(req.params.id);
+    const productId = Number.parseInt(req.params.id); //Hämta id och konverterar till nummer
 
     if (!validateNumber(productId)) {
-        res.status(404).json({ error: "Produktnummret måste vara ett nummer" });
+        res.status(404).json({ error: "Produktnummret måste vara ett nummer" }); //Validerar att id är ett giltigt nummer
         return;
     }
 
@@ -31,6 +31,50 @@ app.get("/products/:id", async (req, res) => {
     }
 
     res.json(result.rows[0]);
+});
+
+
+app.post("/products", async (req, res) => {
+    const name = req.body.name;
+    const quantity = Number.parseInt(req.body.quantity); //Behöver konvertera quantity och price från string till nummer
+    const price = Number.parseInt(req.body.price);       //JSON skickar alltid nummer som string i Express
+    const category = req.body.category;
+
+    //Börjar med att validera all input i bodyn med våra tidigare skrivna valideringsfunktioner
+    if (!validateString(name)) {
+        res.status(400).json({ error: "Namn måste vara text" });
+        return;
+    }
+
+    if (!validateNumber(quantity)) {
+        res.status(400).json({ error: "Antalet måste vara ett nummer" });
+        return;
+    }
+
+    if (!validateNumber(price)) {
+        res.status(400).json({ error: "Pris måste vara ett nummer" });
+        return;
+    }
+
+    if (!validateString(category)) {
+        res.status(400).json({ error: "Kategorin måste vara en text" });
+        return;
+    }
+
+    try { //Om valideringen går igenom försöker vi lägga till produkten
+        const result = await pool.query(
+            `INSERT INTO products (name, quantity, price, category)
+            VALUES ($1, $2, $3, $4)
+            RETURNING *`,
+            [name, quantity, price, category], //Array som vi skickar till databasen. Byter ut placeholders från SQL koden ($1, $2 osv.)
+        );
+
+        res.status(201).json(result.rows[0]) //Svarar med den nya produkten samt status 201
+
+    } catch (error) { //Om något går fel skriver vi ut felet samt svarar med status 500
+        console.log(error);
+        res.status(500).json({ error: "Ett oväntat fel inträffade" });
+    }
 });
 
 
