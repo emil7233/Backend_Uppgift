@@ -145,8 +145,35 @@ app.put("/products/:id", async (req, res) => {
 });
 
 
+app.delete("/products/:id", async (req, res) => {
+    const productId = Number.parseInt(req.params.id); //Konverterar till nummer
 
+    if (!validateNumber(productId)) {
+        res.status(400).json({ error: "Produktid måste vara ett nummer" }); //Validerar att det faktiskt är ett nummer
+        return;
+    }
 
+    try { //Försöker ta bort produkten från databasen
+        const deleted = await pool.query(
+            `DELETE FROM products
+            WHERE id = $1
+            RETURNING *`,
+            [productId]
+        );
+
+        if (!deleted.rows[0]) { //Kollar om produkten finns
+            res.status(404).json({ error: "Produkten finns inte" });
+            return;
+        }
+
+        res.status(204).send(); //Skickar tillbaka status 204 (no content, allt gick som det skulle)
+
+    } catch (error) { //Om något oväntat fel händer loggar vi det
+        console.log(error);
+        res.status(500).json({ error: "Ett oväntat fel inträffade" });
+    }
+
+});
 
 
 
