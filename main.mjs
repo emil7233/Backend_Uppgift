@@ -177,6 +177,139 @@ app.delete("/products/:id", async (req, res) => {
 
 
 
+app.get("/suppliers", async (req, res) => {
+    const allSuppliers = await pool.query("SELECT * FROM suppliers");
+    res.json(allSuppliers.rows);
+});
+
+
+app.get("/suppliers/:id", async (req, res) => {
+
+});
+
+
+app.post("/suppliers", async (req, res) => {
+    const { name, contact_person, email, country } = req.body;
+    const phone_number = Number.parseInt(req.body.phone_number);
+
+    if (!validateString(name)) {
+        res.status(400).json({ error: "Namnet måste vara en text" });
+        return;
+    }
+
+    if (!validateString(contact_person)) {
+        res.status(400).json({ error: "Kontaktperson måste vara en text" });
+        return;
+    }
+
+    if (!validateString(email)) {
+        res.status(400).json({ error: "Email måste vara en text" });
+        return;
+    }
+
+    if (!validateNumber(phone_number)) {
+        res.status(400).json({ error: "Telefonnummret måste vara ett nummer" });
+        return;
+    }
+
+    if (!validateString(country)) {
+        res.status(400).json({ error: "Landet måste vara en text" });
+        return;
+    }
+
+
+    try {
+        const result = await pool.query(`
+            INSERT INTO suppliers (name, contact_person, email, phone_number, country)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *`,
+            [name, contact_person, email, phone_number, country])
+
+
+        res.status(201).json(result.rows[0]);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Ett oväntat fel inträffade" });
+    }
+});
+
+
+app.put("/suppliers/:id", async (req, res) => {
+    const supplierId = Number.parseInt(req.params.id); //Konverterar supplierId från URL samt validerar
+
+    if (!validateNumber(supplierId)) {
+        res.status(400).json({ error: "Supplier id måste vara ett nummer" });
+        return;
+    }
+
+    //Plockar ut alla värden från bodyn, förutom phone_number eftersom det behöver konverteras
+    const { name, contact_person, email, country } = req.body;
+    const phone_number = Number.parseInt(req.body.phone_number);
+    //Validerar allt, samma som på products endpointen
+    if (!validateString(name)) {
+        res.status(400).json({ error: "Namnet måste vara en text" });
+        return;
+    }
+
+    if (!validateString(contact_person)) {
+        res.status(400).json({ error: "Kontaktperson måste vara en text" });
+        return;
+    }
+
+    if (!validateString(email)) {
+        res.status(400).json({ error: "Email måste vara en text" });
+        return;
+    }
+
+    if (!validateNumber(phone_number)) {
+        res.status(400).json({ error: "Telefonnummret måste vara ett nummer" });
+        return;
+    }
+
+    if (!validateString(country)) {
+        res.status(400).json({ error: "Landet måste vara en text" });
+        return;
+    }
+
+    try { //Kollar om leverantören finns
+        const existingSupplier = await pool.query(
+            "SELECT * FROM suppliers WHERE id = $1",
+            [supplierId]
+        );
+
+        if (!existingSupplier.rows[0]) {
+            res.status(404).json({ error: "Leverantören finns inte" }); //Om leverantören inte finns skickar vi ett felmeddelande
+            return;
+        }
+
+        const update = await pool.query( //Försöker uppdatera leverantören
+            `UPDATE suppliers 
+            SET name = $1, contact_person = $2, email = $3, phone_number = $4, country = $5
+            WHERE id = $6
+            RETURNING *`,
+            [name, contact_person, email, phone_number, country, supplierId]
+        );
+
+        res.json(update.rows[0]);
+
+    } catch (error) { //Catchar och loggar oväntade fel
+        console.log(error);
+        res.status(500).json({ error: "Ett oväntat fel inträffade" });
+    }
+});
+
+
+app.delete("/suppliers/:id", async (req, res) => {
+
+});
+
+
+app.get("/suppliers/:id/products", async (req, res) => {
+
+});
+
+
 
 
 //Startar servern på port 3000
