@@ -31,14 +31,14 @@ export async function setupDatabase() {     // Exporterar funktionen som skapar 
     // quantity INT NOT NULL = heltal, måste ha värde
     // price NUMERIC(10,2) NOT NULL = decimal med totalt 10 siffror, varav 2 decimaler
     await pool.query(`
-    CREATE TABLE IF NOT EXISTS products (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    quantity INT NOT NULL,
-    price NUMERIC(10,2) NOT NULL,
-    category VARCHAR(50),
-    suppliers_id INT REFERENCES supplier(id) ON DELETE SET NULL
-    )`);
+        CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        quantity INT NOT NULL,
+        price NUMERIC(10,2) NOT NULL,
+        category VARCHAR(50),
+        supplier_id INT REFERENCES suppliers(id) ON DELETE SET NULL
+        )`);
 
     //ON DELETE SET NULL = Om en supplier tas bort så blir supplier_id = NULL iställer för att produkten tas bort
     //supplier_id INT REFERENCES suppliers(id) = foreign key, denna kopplar varje product till en supplier
