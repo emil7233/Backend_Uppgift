@@ -42,7 +42,7 @@ router.get("/:id", async (req, res) => {
     const productId = Number.parseInt(req.params.id); //Hämta id och konverterar till nummer
     try {
         if (!validateNumber(productId)) {
-            res.status(404).json({ error: "Produktnummret måste vara ett nummer" }); //Validerar att id är ett giltigt nummer
+            res.status(400).json({ error: "Produktnummret måste vara ett nummer" }); //Validerar att id är ett giltigt nummer
             return;
         }
         //Hämta din specifika produkt
